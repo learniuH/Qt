@@ -1,7 +1,7 @@
 
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "protomodel.h"
+#include "ProtoEditor/protomodel.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

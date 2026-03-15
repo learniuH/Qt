@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 
-#include "typedelegate.h"
+#include "ProtoEditor/typedelegate.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

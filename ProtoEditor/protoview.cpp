@@ -23,3 +23,8 @@ void ProtoView::setModel(QAbstractItemModel *model)
     // connect(protoModel, &QAbstractItemModel::layoutChanged,
             // this, &ProtoView::rebuildSpans);
 }
+
+void ProtoView::rebuildSpans()
+{
+
+}

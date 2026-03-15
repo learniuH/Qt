@@ -31,7 +31,7 @@
   <customwidget>
    <class>ProtoView</class>
    <extends>QTableView</extends>
-   <header>protoview.h</header>
+   <header>ProtoEditor/protoview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
