@@ -6,12 +6,11 @@
 
 #include "typedelegate.h"
 
-
 #define OFFSET_COL      (0)
 #define TYPE_COL        (1)
 #define DESC_COL        (2)
 #define VAL_COL         (3)
-#define PROP_COL        (4)    
+#define PROP_COL        (4)
 #define COL_COUNT       (5)
 
 struct Field {
@@ -46,29 +45,25 @@ public:
 
     ~ProtoModel();
 
-    // QModelIndex index(int row, int column,
-                              // const QModelIndex &parent = QModelIndex()) const override;
-
-    // QModelIndex parent(const QModelIndex &child) const override;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
-    /**
-     * @param section: 表头的索引，水平表头代表列号，垂直表头代表行号
-     */
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const override;
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
     QSize span(const QModelIndex &index) const override;
-
 
 
     void setProtoSize(quint16 size);
@@ -82,8 +77,6 @@ private:
 
     /* Deprecated */
     // quint16 offsetOfRow(int row) const;
-
-    void procFieldRow(const QModelIndex &index, ProtoField &f, quint8 type_idx);
 
     int protoSize() const;
 };

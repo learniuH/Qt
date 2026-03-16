@@ -5,7 +5,7 @@
 #include <QStyledItemDelegate>
 
 #define UINT8_NAME          ("uint8")
-#define BITFIELD_NAME       ("bitField")
+#define BITFIELD_NAME       ("byte")
 #define UINT16_NAME		    ("uint16")
 #define UINT32_NAME		    ("uint32")
 #define FLOAT_NAME		    ("float")
@@ -17,6 +17,7 @@ struct TypeInfo {
     int rowSpan;
 
     bool operator==(const TypeInfo &other) const;
+    bool operator!=(const TypeInfo &other) const;
 };
 
 class ComboItemDelegate : public QStyledItemDelegate

@@ -14,6 +14,11 @@ bool TypeInfo::operator==(const TypeInfo &other) const
     return name == other.name;
 }
 
+bool TypeInfo::operator!=(const TypeInfo &other) const
+{
+    return name != other.name;
+}
+
 ComboItemDelegate::ComboItemDelegate(QObject *parent)
     : QStyledItemDelegate(parent)
 {
