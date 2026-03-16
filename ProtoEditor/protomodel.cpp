@@ -2,11 +2,6 @@
 #include <algorithm>
 #include <QSize>
 
-#define OFFSET_COL      (0)
-#define TYPE_COL        (1)
-#define DESC_COL        (2)
-#define VAL_COL         (3)
-
 #define DEFAULT_FIELD   (Field{"", 0})
 #define DEFAULT_TYPE	(dataType[0])
 
@@ -50,7 +45,7 @@ int ProtoModel::rowCount(const QModelIndex &/*parent*/) const
 
 int ProtoModel::columnCount(const QModelIndex &/*parent*/) const
 {
-    return 4; // Offset, Type, Desc, Val
+    return COL_COUNT; // Offset, Type, Desc, Val, Prop
 }
 
 QVariant ProtoModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -69,6 +64,8 @@ QVariant ProtoModel::headerData(int section, Qt::Orientation orientation, int ro
             return "Desc";
         case VAL_COL:
             return "Val";
+        case PROP_COL:
+            return "Prop";
         }
 
     } else if (orientation == Qt::Vertical) {
@@ -94,7 +91,7 @@ int ProtoModel::ownerOfRow(int row) const
     // quint16 i = 0;  /* 遍历行索引 */
     // quint16 offset = fields[i].offset;
     // while (i < row) {
-        // if (i + fields[offset].type.rowSpan > row) {
+        // if (i + fields[offset].tkkkkkkkpe.rowSpan > row) {
             // return offset;
         // }
         // i += fields[offset].type.rowSpan;
@@ -103,14 +100,17 @@ int ProtoModel::ownerOfRow(int row) const
     // return offset;
 // }
 
-void ProtoModel::procFieldRow(ProtoField &f, quint8 type_idx)
+void ProtoModel::procFieldRow(const QModelIndex &index, ProtoField &f, quint8 type_idx)
 {
     /* 当前是 bitField */
     if (f.type.name == BITFIELD_NAME) {
         auto it = std::find(fields.begin(), fields.end(), f);
-        /* 移除 bitField 的7行字段 */
-        if (std::distance(it, fields.end()) > f.type.rowSpan) {
+        if (it != fields.end() && std::distance(it, fields.end()) > f.type.rowSpan) {
+            /* 移除 bitField 的7行字段 */
+            int first = std::distance(fields.begin(), it);
+            beginRemoveRows(index, first, first + 7);
             fields.erase(it + 1, it + f.type.rowSpan);
+            endRemoveRows();
             /* 后续字段行号 -7 */
             for (; it != fields.end(); ++it) {
                 it->row -= 7;
@@ -119,6 +119,9 @@ void ProtoModel::procFieldRow(ProtoField &f, quint8 type_idx)
     /* 变成 bitField */
     } else if (dataType[type_idx].name == BITFIELD_NAME) {
         auto it = std::find(fields.begin(), fields.end(), f);
+        if (it != fields.end()) {
+            /* 这个函数需要重新写，这么一直找 f 太啰嗦了 */
+        }
         /* 添加 bitField 的7行字段 */
         for (int r = f.row + 1; r < f.row + f.type.rowSpan; ++r) {
             ProtoField bitField;
@@ -220,7 +223,7 @@ bool ProtoModel::setData(const QModelIndex &index, const QVariant &value, int ro
             procFieldRow(f, type_idx);
         } else {
             /* 行跨相同 */
-            procFieldRow(f, type_idx);
+            procFieldRow(index, f, type_idx);
         }
         f.type = dataType[type_idx];
         break;
@@ -267,10 +270,9 @@ QSize ProtoModel::span(const QModelIndex &index) const
     if (!index.isValid())
         return QSize(1, 1);
 
-    qDebug() << "1111";
     const ProtoField &f = fields[index.row()];
 
-    qDebug() << "r" << index.row() << "c" << index.column() << "span" << f.type.rowSpan;
+    qDebug() << "model::span(): r" << index.row() << "c" << index.column() << "span" << f.type.rowSpan;
     return QSize(1, f.type.rowSpan);
 }
 
@@ -333,4 +335,13 @@ void ProtoModel::setProtoSize(quint16 size)
         }
     }
     endResetModel();
+}
+
+bool ProtoModel::isBitField(const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return false;
+
+    const ProtoField &f = fields[index.row()];
+    return (f.type.name == BITFIELD_NAME);
 }

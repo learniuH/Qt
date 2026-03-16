@@ -18,6 +18,13 @@
     <item alignment="Qt::AlignLeft">
      <widget class="QLineEdit" name="protoSizeLine"/>
     </item>
+    <item alignment="Qt::AlignLeft">
+     <widget class="QPushButton" name="spanButton">
+      <property name="text">
+       <string>setSpan(0, 2, 2, 1)</string>
+      </property>
+     </widget>
+    </item>
     <item>
      <widget class="QTableView" name="tableView"/>
     </item>

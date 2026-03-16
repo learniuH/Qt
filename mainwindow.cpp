@@ -23,6 +23,11 @@ MainWindow::MainWindow(QWidget *parent)
         model1->setProtoSize(size);
         model2->setProtoSize(size);
     });
+
+    connect(ui->spanButton, &QPushButton::clicked, [this](){
+        ui->protoView->setSpan(0, 2, 2, 1);
+        ui->tableView->setSpan(0, 2, 2, 1);
+    });
 }
 
 MainWindow::~MainWindow()

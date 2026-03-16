@@ -7,6 +7,13 @@
 #include "typedelegate.h"
 
 
+#define OFFSET_COL      (0)
+#define TYPE_COL        (1)
+#define DESC_COL        (2)
+#define VAL_COL         (3)
+#define PROP_COL        (4)    
+#define COL_COUNT       (5)
+
 struct Field {
     QString desc;
     int val;
@@ -44,7 +51,6 @@ public:
 
     // QModelIndex parent(const QModelIndex &child) const override;
 
-
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -63,7 +69,11 @@ public:
 
     QSize span(const QModelIndex &index) const override;
 
+
+
     void setProtoSize(quint16 size);
+
+    bool isBitField(const QModelIndex &index) const;
 
 private:
     QVector<ProtoField> fields;
@@ -73,7 +83,7 @@ private:
     /* Deprecated */
     // quint16 offsetOfRow(int row) const;
 
-    void procFieldRow(ProtoField &f, quint8 type_idx);
+    void procFieldRow(const QModelIndex &index, ProtoField &f, quint8 type_idx);
 
     int protoSize() const;
 };
