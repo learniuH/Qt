@@ -26,12 +26,10 @@ struct ProtoField {
     bool continuation; // 如果 true，表示这是 owner 之后的被合并行, bitField 为 true(通过offset判断字节号)
     int ownerRow;           // 如果 continuation==true，指向 owner 字段的行号
 
-
-
     /* Deprecated */
-    int ownerOffset = 0;      // 如果 continuation==true，指向 owner 字段的offset
+    // int ownerOffset = 0;      // 如果 continuation==true，指向 owner 字段的offset
     /* Deprecate */
-    QVector<Field> fields; // owner 用的每个子行的数据，size == rowSpan
+    // QVector<Field> fields; // owner 用的每个子行的数据，size == rowSpan
 
     bool operator==(const ProtoField &other) const;
     friend QDebug operator<<(QDebug dbg, const ProtoField &f);

@@ -13,9 +13,8 @@ public:
 
     void setModel(QAbstractItemModel *model) override;
 
-private slots:
 
-    void rebuildSpans();
+private slots:
 
 private:
     ProtoModel *protoModel;

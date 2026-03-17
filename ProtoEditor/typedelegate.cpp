@@ -1,4 +1,5 @@
 #include "typedelegate.h"
+#include <QTimer>
 
 extern const QVector<TypeInfo> dataType = {
     {.name=UINT8_NAME,      .size=1,    .rowSpan=1},
@@ -22,7 +23,6 @@ bool TypeInfo::operator!=(const TypeInfo &other) const
 ComboItemDelegate::ComboItemDelegate(QObject *parent)
     : QStyledItemDelegate(parent)
 {
-
 }
 
 ComboItemDelegate::~ComboItemDelegate()
@@ -32,11 +32,16 @@ ComboItemDelegate::~ComboItemDelegate()
 
 QWidget *ComboItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QComboBox *combo = new QComboBox(parent);
+    QComboBox *editor = new QComboBox(parent);
     for (const TypeInfo &t : dataType) {
-        combo->addItem(t.name);
+        editor->addItem(t.name);
     }
-    return combo;
+
+    QTimer::singleShot(0, editor, [editor]() {
+        editor->showPopup();
+    });
+
+    return editor;
 }
 
 void ComboItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
@@ -50,8 +55,8 @@ void ComboItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index)
 void ComboItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
     QComboBox *combo = static_cast<QComboBox *>(editor);
-    quint8 type_index = combo->currentIndex();
-    model->setData(index, type_index, Qt::EditRole);
+    if (!combo) return;
+    model->setData(index, combo->currentIndex(), Qt::EditRole);
 }
 
 void ComboItemDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const

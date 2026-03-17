@@ -20,6 +20,7 @@ struct TypeInfo {
     bool operator!=(const TypeInfo &other) const;
 };
 
+// class ComboItemDelegate : public QStyledItemDelegate
 class ComboItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
@@ -42,6 +43,8 @@ public:
     void updateEditorGeometry(QWidget *editor,
                               const QStyleOptionViewItem &option,
                               const QModelIndex &index) const override;
+protected:
+
 };
 
 #endif // TYPEDELEGATE_H

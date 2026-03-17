@@ -17,6 +17,10 @@ MainWindow::MainWindow(QWidget *parent)
     ProtoModel *model2 = new ProtoModel(this);
     ui->protoView->setModel(model2);
     ui->protoView->setItemDelegateForColumn(1, new ComboItemDelegate(this));
+    // ui->protoView->setEditTriggers(
+        // QAbstractItemView::CurrentChanged | /* 切换单元格进入编辑 */
+        // QAbstractItemView::SelectedClicked  /* 单击已选中项进入编辑 */
+    // );
 
     connect(ui->protoSizeLine, &QLineEdit::editingFinished, [this, model1, model2](){
         int size = ui->protoSizeLine->text().toInt();

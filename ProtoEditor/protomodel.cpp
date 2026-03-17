@@ -174,49 +174,67 @@ bool ProtoModel::setData(const QModelIndex &index, const QVariant &value, int ro
 
     case TYPE_COL: {
         int type_idx = value.toInt();
-        int type_span = dataType[type_idx].rowSpan;
-        int type_size = dataType[type_idx].size;
+        const TypeInfo &type = dataType[type_idx];
 
         int rowCount = fields.size();
         int lastOwnerRow = ownerOfRow(rowCount - 1);
         int size = fields[lastOwnerRow].offset + fields[lastOwnerRow].type.size;
 
-        if (index.row() + type_size > size)
+        if (index.row() + type.size > size)
             return false;
 
-        /* 处理 bitField 造成的 row 改变 */
-
         /* 减少行合并 */
-        if (f.type.size > type_size) {
-            for (int i = f.row + type_size; i < f.row + f.type.size; i++) {
-                fields[i].continuation = false;
-                fields[i].ownerRow = i;
+        if (f.type.size > type.size) {
+            for (int r = f.row + type.size; r < f.row + f.type.rowSpan; r++) {
+                fields[r].continuation = false;
+                fields[r].ownerRow = r;
             }
-        /* 增加行合并 */
-        } else if (f.type.size < type_size) {
-            for (int i = f.row + f.type.size; i < (f.row + f.type.size) + (type_size - f.type.size); i++) {
-                if (fields[i].type != BITFIELD_TYPE) {
-                    if (fields[i].row + fields[i].type.size > f.row + type_size) {
-                        for (int j = f.row + type_size; j < fields[i].row + fields[i].type.size; ++j) {
-                            fields[j].continuation = false;
-                            fields[j].ownerRow = fields[j].row;
-                        }
-                    }
-                    fields[i].type = DEFAULT_TYPE;
-                }
-                fields[i].field = DEFAULT_FIELD;
-                fields[i].continuation = true;
-                fields[i].ownerRow = f.row;
-            }
-        } else {
-            /* 行跨相同 */
-            if (f.type == BITFIELD_TYPE) {
-                removeRows(f.row + 1, f.type.rowSpan - 1);
-            } else if (dataType[type_idx] == BITFIELD_TYPE) {
-                insertRows(f.row + 1, type_span - 1);
+            if (type == BITFIELD_TYPE) {
+                /* insert() 会导致vector内存地址发生改变 */
+                insertRows(f.row + 1, type.rowSpan -1);
             }
         }
-        f.type = dataType[type_idx];
+        /* 增加行合并 */
+        else if (f.type.size < type.size) {
+            if (f.type == BITFIELD_TYPE) {
+                removeRows(f.row + 1, f.type.rowSpan - 1);
+            }
+            for (int r = f.row + f.type.size; r < f.row +  type.rowSpan; r++) {
+                if (fields[r].type == BITFIELD_TYPE) {
+                    removeRows(fields[r].row + 1, fields[r].type.rowSpan - 1);
+                }
+                else if (fields[r].type.size > 1) 
+                {
+                    if (fields[r].row + fields[r].type.rowSpan > f.row + type.rowSpan) {
+                        for (int i = f.row + type.rowSpan; i < fields[r].row + fields[r].type.rowSpan; ++i) {
+                            fields[i].type = DEFAULT_TYPE;
+                            fields[i].continuation = false;
+                            fields[i].ownerRow = fields[i].row;
+                        }
+                    }
+                }
+                else
+                {
+                    /* fields[r].type == DEFAULT_TYPE */
+                }
+                fields[r].type = DEFAULT_TYPE;
+                fields[r].field = DEFAULT_FIELD;
+                fields[r].continuation = true;
+                fields[r].ownerRow = f.row;
+            }
+        }
+        /* 行跨相同 */
+        else {
+            if (f.type != type) {
+                if (f.type == BITFIELD_TYPE) {
+                    removeRows(f.row + 1, f.type.rowSpan - 1);
+                } else if (type == BITFIELD_TYPE) {
+                    insertRows(f.row + 1, type.rowSpan - 1);
+                }
+            }
+        }
+        /* f.type = type;	insert() 导致vector内存改变后, 通过 &f 修改数据失效 */
+        fields[index.row()].type = type;
         break;
     }
     case DESC_COL: {

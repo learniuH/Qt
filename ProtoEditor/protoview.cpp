@@ -4,6 +4,7 @@
 ProtoView::ProtoView(QWidget *parent)
     : QTableView(parent)
 {
+    
 }
 
 void ProtoView::setModel(QAbstractItemModel *model)
@@ -14,8 +15,8 @@ void ProtoView::setModel(QAbstractItemModel *model)
     if (!protoModel)
         return;
 
-    connect(protoModel, &QAbstractItemModel::modelReset,
-            this, &ProtoView::rebuildSpans);
+    // connect(protoModel, &QAbstractItemModel::modelReset,
+    //         this, &ProtoView::rebuildSpans);
 
     // connect(protoModel, &QAbstractItemModel::layoutChanged,
             // this, &ProtoView::rebuildSpans);
@@ -29,18 +30,11 @@ void ProtoView::setModel(QAbstractItemModel *model)
             if (topLeft.column() == TYPE_COL) {
                 QSize s = protoModel->span(protoModel->index(row, TYPE_COL));
                 this->setSpan(row, TYPE_COL, s.height(), s.width());
-                if (!protoModel->isBitField(topLeft)) {
-                this->setSpan(row, DESC_COL, s.height(), s.width());
-                this->setSpan(row, VAL_COL, s.height(), s.width());
-                }
-            } else {
-
+                int rowSpan = protoModel->isBitField(topLeft) ? 1 : s.height();
+                int colSpan = protoModel->isBitField(topLeft) ? 1 : s.width();
+                this->setSpan(row, DESC_COL, rowSpan, colSpan);
+                this->setSpan(row, VAL_COL, rowSpan, colSpan);
             }
         }
     );
-}
-
-void ProtoView::rebuildSpans()
-{
-
 }
