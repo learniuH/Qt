@@ -1,6 +1,9 @@
 #include "protoview.h"
 #include <QSize>
 
+#define DEFAULT_RSPAN (1)
+#define BITFIELD_RSPAN (8)
+
 ProtoView::ProtoView(QWidget *parent)
     : QTableView(parent)
 {
@@ -16,7 +19,9 @@ void ProtoView::setModel(QAbstractItemModel *model)
         return;
 
     // connect(protoModel, &QAbstractItemModel::modelReset,
-    //         this, &ProtoView::rebuildSpans);
+        // [this]() {
+        // }
+    // );
 
     // connect(protoModel, &QAbstractItemModel::layoutChanged,
             // this, &ProtoView::rebuildSpans);
@@ -28,12 +33,13 @@ void ProtoView::setModel(QAbstractItemModel *model)
 
             int row = topLeft.row();
             if (topLeft.column() == TYPE_COL) {
+                bool isBitField = protoModel->isBitField(topLeft);
+
                 QSize s = protoModel->span(protoModel->index(row, TYPE_COL));
+                this->setSpan(row, OFFSET_COL, isBitField ? BITFIELD_RSPAN : DEFAULT_RSPAN, s.width());
                 this->setSpan(row, TYPE_COL, s.height(), s.width());
-                int rowSpan = protoModel->isBitField(topLeft) ? 1 : s.height();
-                int colSpan = protoModel->isBitField(topLeft) ? 1 : s.width();
-                this->setSpan(row, DESC_COL, rowSpan, colSpan);
-                this->setSpan(row, VAL_COL, rowSpan, colSpan);
+                this->setSpan(row, DESC_COL, isBitField ? DEFAULT_RSPAN : s.height(), s.width());
+                this->setSpan(row, VAL_COL, isBitField ? DEFAULT_RSPAN : s.height(), s.width());
             }
         }
     );

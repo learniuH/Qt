@@ -8,10 +8,10 @@
 
 extern const QVector<TypeInfo> dataType;
 
-bool ProtoField::operator==(const ProtoField &other) const
-{
-    return (offset == other.offset);
-}
+// bool ProtoField::operator==(const ProtoField &other) const
+// {
+    // return (offset == other.offset);
+// }
 
 QDebug operator<<(QDebug dbg, const ProtoField &f)
 {
@@ -68,10 +68,10 @@ QVariant ProtoModel::headerData(int section, Qt::Orientation orientation, int ro
         case PROP_COL:
             return "Prop";
         }
-
-    } else if (orientation == Qt::Vertical) {
-        return (section + 1);
     }
+    // else if (orientation == Qt::Vertical) {
+        // return (section + 1);
+    // }
     return {};
 }
 
@@ -113,36 +113,34 @@ QVariant ProtoModel::data(const QModelIndex &index, int role) const
     return {};
 }
 
-/* 数据类型切换到 bitField 时调用次函数 */
 bool ProtoModel::insertRows(int row, int count, const QModelIndex &parent)
 {
-    if (row < 1 || count < 1)
+    if (row < 0 || count < 1)
         return false;
 
     beginInsertRows(parent, row, row + count - 1);
 
-    const ProtoField &f = fields[row - 1];
-    /* 添加 bitField 的后7行字段 */
+    int last_offset = (row == 0) ? -1 : fields[row - 1].offset;
     for (int r = row; r < row + count; ++r) {
-        ProtoField bitField;
-        bitField.offset = f.offset;
-        bitField.type = BITFIELD_TYPE;
-        bitField.field = DEFAULT_FIELD;
-        bitField.row = r;
-        bitField.continuation = false;
-        bitField.ownerRow = bitField.row;
-        fields.insert(fields.begin() + r, bitField);
+        ProtoField f;
+        f.offset = last_offset + (r - row + 1);
+        f.type = DEFAULT_TYPE;
+        f.field = DEFAULT_FIELD;
+        f.row = r;
+        f.continuation = false;
+        f.ownerRow = f.row;
+        fields.insert(fields.begin() + r, f);
     }
     /* 重置后续字段行号 */
     for (int r = row + count; r < rowCount(); ++r) {
         fields[r].row = r;
         fields[r].ownerRow = fields[r].continuation ? ownerOfRow(r) + count : ownerOfRow(r);
     }
+
     endInsertRows();
     return true;
 }
 
-/* bitField 切换成其他时调用 */
 bool ProtoModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     if (row < 0 || count < 1 || row + count > rowCount())
@@ -150,24 +148,25 @@ bool ProtoModel::removeRows(int row, int count, const QModelIndex &parent)
 
     beginRemoveRows(parent, row, row + count - 1);
 
-    /* 移除 bitField 的后7行字段, 并重置后续字段行号*/
+    /* 移除字段, 并重置后续字段行号*/
     fields.erase(fields.begin() + row, fields.begin() + row + count);
     for (int r = row; r < rowCount(); ++r) {
         fields[r].row = r;
         fields[r].ownerRow = fields[r].continuation ? ownerOfRow(r) - count : ownerOfRow(r);
     }
+
     endRemoveRows();
     return true;
 }
 
-bool ProtoModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ProtoModel::setData(const QModelIndex &idx, const QVariant &value, int role)
 {
-    if (role != Qt::EditRole || !index.isValid())
+    if (role != Qt::EditRole || !idx.isValid())
         return false;
 
-    ProtoField &f = fields[index.row()];
+    ProtoField &f = fields[idx.row()];
 
-    switch (index.column())
+    switch (idx.column())
     {
     case OFFSET_COL:
         return false;   /* 不可编辑 */
@@ -176,22 +175,23 @@ bool ProtoModel::setData(const QModelIndex &index, const QVariant &value, int ro
         int type_idx = value.toInt();
         const TypeInfo &type = dataType[type_idx];
 
-        int rowCount = fields.size();
-        int lastOwnerRow = ownerOfRow(rowCount - 1);
-        int size = fields[lastOwnerRow].offset + fields[lastOwnerRow].type.size;
-
-        if (index.row() + type.size > size)
+        if (f.offset + type.size > protoSize())
             return false;
 
         /* 减少行合并 */
         if (f.type.size > type.size) {
-            for (int r = f.row + type.size; r < f.row + f.type.rowSpan; r++) {
+            for (int r = f.row + type.size; r < f.row + f.type.rowSpan; ++r) {
+                /* 旧类型多合并的行 */
                 fields[r].continuation = false;
                 fields[r].ownerRow = r;
             }
             if (type == BITFIELD_TYPE) {
-                /* insert() 会导致vector内存地址发生改变 */
+                /* 添加 bitField 的后7行字段 */
                 insertRows(f.row + 1, type.rowSpan -1);
+                for (int i = f.row + 1; i < f.row + type.rowSpan; ++i) {
+                    fields[i].offset = f.offset;
+                    fields[i].type = BITFIELD_TYPE;
+                }
             }
         }
         /* 增加行合并 */
@@ -199,7 +199,7 @@ bool ProtoModel::setData(const QModelIndex &index, const QVariant &value, int ro
             if (f.type == BITFIELD_TYPE) {
                 removeRows(f.row + 1, f.type.rowSpan - 1);
             }
-            for (int r = f.row + f.type.size; r < f.row +  type.rowSpan; r++) {
+            for (int r = f.row + f.type.size; r < f.row +  type.rowSpan; ++r) {
                 if (fields[r].type == BITFIELD_TYPE) {
                     removeRows(fields[r].row + 1, fields[r].type.rowSpan - 1);
                 }
@@ -212,10 +212,18 @@ bool ProtoModel::setData(const QModelIndex &index, const QVariant &value, int ro
                             fields[i].ownerRow = fields[i].row;
                         }
                     }
+                    /* 取消向下合并中 rowSpan > 1的单元格合并 */
+                    fields[r].type = DEFAULT_TYPE;
+                    fields[r].field = DEFAULT_FIELD;
+                    fields[r].continuation = true;
+                    fields[r].ownerRow = f.row;
+                    QModelIndex idx = index(r, TYPE_COL);
+                    emit dataChanged(idx, idx);
+                    continue;
                 }
                 else
                 {
-                    /* fields[r].type == DEFAULT_TYPE */
+                    /* fields[r].type.size == 1*/
                 }
                 fields[r].type = DEFAULT_TYPE;
                 fields[r].field = DEFAULT_FIELD;
@@ -229,12 +237,17 @@ bool ProtoModel::setData(const QModelIndex &index, const QVariant &value, int ro
                 if (f.type == BITFIELD_TYPE) {
                     removeRows(f.row + 1, f.type.rowSpan - 1);
                 } else if (type == BITFIELD_TYPE) {
+                    /* 添加 bitField 的后7行字段 */
                     insertRows(f.row + 1, type.rowSpan - 1);
+                    for (int i = f.row + 1; i < f.row + type.rowSpan; ++i) {
+                        fields[i].offset = f.offset;
+                        fields[i].type = BITFIELD_TYPE;
+                    }
                 }
             }
         }
         /* f.type = type;	insert() 导致vector内存改变后, 通过 &f 修改数据失效 */
-        fields[index.row()].type = type;
+        fields[idx.row()].type = type;
         break;
     }
     case DESC_COL: {
@@ -251,7 +264,7 @@ bool ProtoModel::setData(const QModelIndex &index, const QVariant &value, int ro
         qDebug() << f;
     }
     qDebug() << "==============================";
-    emit dataChanged(index, index);
+    emit dataChanged(idx, idx);
     return true;
 }
 
@@ -298,53 +311,48 @@ int ProtoModel::protoSize() const
 
 void ProtoModel::setProtoSize(quint16 size)
 {
-    beginResetModel();
-
     int oldSize = protoSize();
 
     if (size == oldSize)
         return;
 
-    int oldRowCount = fields.size();
     /* 减小 */
     if (size < oldSize) {
-        if (size != 0) {
-            int row = ownerOfRow(oldRowCount - 1);
-            /* 将位于size大小的字段变为默认字段 */
-            while (fields[row].offset > size) {
-                row = ownerOfRow(--row);
-            }
-            if (fields[row].offset == size) {
-                if (fields[row].type.size > 1) {
-                    fields[row].type = DEFAULT_TYPE;
-                    fields[row].field = DEFAULT_FIELD;
-                }
+        int row = 0;
+        while (fields[row].offset < size)
+        {
+            const ProtoField &f = fields[row];
+            if (f.offset + f.type.size > size) {
+                int type_size =f.type.size;
+                for (int r = row; r < row + type_size; ++r) {
+                    if (r == row) {
+                        fields[r].type = DEFAULT_TYPE;
+                        fields[r].field = DEFAULT_FIELD;
+                        QModelIndex idx = index(r, TYPE_COL);
+                        emit dataChanged(idx, idx);
+                    }
+                    else
+                    {
+                        fields[r].continuation = false;
+                        fields[r].ownerRow = fields[r].row;
+                    }
 
-            } else { /* fields[row].offset < size */
-                for (int i = row; i < row + (size - fields[row].offset); ++i) {
-                    fields[i].type = DEFAULT_TYPE;
-                    fields[i].field = DEFAULT_FIELD;
-                    fields[i].continuation = false;
-                    fields[i].ownerRow = fields[i].row;
+                    if (fields[r].offset == size) {
+                        row = r;
+                        goto locateSize;
+                    }
                 }
             }
+            row += f.type.rowSpan;
         }
-        fields.resize(size);
+        
+        locateSize:
+        removeRows(row, rowCount() - row);
+    } 
     /* 变大 */
-    } else {
-        fields.resize(oldRowCount + (size - oldSize));
-
-        for (int i = oldRowCount; i < fields.size(); ++i) {
-            ProtoField &f = fields[i];
-            f.offset = oldSize + (i - oldRowCount);
-            f.type = DEFAULT_TYPE;
-            f.field = DEFAULT_FIELD;
-            f.row = i;
-            f.continuation = false;
-            f.ownerRow = f.row;
-        }
+    else {
+        insertRows(rowCount(), size - oldSize);
     }
-    endResetModel();
 }
 
 bool ProtoModel::isBitField(const QModelIndex &index) const
