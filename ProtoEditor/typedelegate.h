@@ -20,7 +20,6 @@ struct TypeInfo {
     bool operator!=(const TypeInfo &other) const;
 };
 
-// class ComboItemDelegate : public QStyledItemDelegate
 class ComboItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT

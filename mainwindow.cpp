@@ -3,16 +3,14 @@
 #include "./ui_mainwindow.h"
 #include "ProtoEditor/protomodel.h"
 
+#include "GraphicsItems/joystickitem.h"
+#include <QGraphicsScene>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    ProtoModel *model1 = new ProtoModel(this);
-    ui->tableView->setModel(model1);
-    ComboItemDelegate *comboDelegate = new ComboItemDelegate(this);
-    ui->tableView->setItemDelegateForColumn(1, comboDelegate);
 
     ProtoModel *model2 = new ProtoModel(this);
     ui->protoView->setModel(model2);
@@ -22,16 +20,23 @@ MainWindow::MainWindow(QWidget *parent)
         // QAbstractItemView::SelectedClicked  /* 单击已选中项进入编辑 */
     // );
 
-    connect(ui->protoSizeLine, &QLineEdit::editingFinished, [this, model1, model2](){
+    connect(ui->protoSizeLine, &QLineEdit::editingFinished, [this, model2](){
         int size = ui->protoSizeLine->text().toInt();
-        model1->setProtoSize(size);
         model2->setProtoSize(size);
     });
 
-    connect(ui->spanButton, &QPushButton::clicked, [this](){
-        ui->protoView->setSpan(0, 2, 2, 1);
-        ui->tableView->setSpan(0, 2, 2, 1);
-    });
+    QGraphicsScene *scene = new QGraphicsScene(this);
+    JoyStickItem *joyStick = new JoyStickItem();
+    scene->addItem(joyStick);
+    joyStick->setPos(100, 100);
+    
+    ui->graphicsView->setScene(scene);
+    
+    connect(joyStick, &JoyStickItem::directionChanged, 
+        [](QPointF dir) {
+            qDebug() << "方向" << dir;
+        }
+    );
 }
 
 MainWindow::~MainWindow()
