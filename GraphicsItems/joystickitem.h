@@ -5,25 +5,35 @@
 #include <QPointF>
 #include <QGraphicsSceneMouseEvent>
 
+enum Direction {
+    Default = 0x00,
+    Up      = 0x01,
+    Down    = 0x02,
+    Left    = 0x04,
+    Right   = 0x08
+};
+
 class JoyStickItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
-    enum JoyStickMode {
-        Free,       // 万向
-        Cross,      // 十字
-        Horizontal, // 一字 (X轴)
-        Vertical    // 一字 (Y轴)
-    };
-    explicit JoyStickItem(JoyStickMode mode = Free, qreal radius = 50, QGraphicsItem *parent = nullptr);
+    // enum JoyStickMode {
+        // Free,       // 万向
+        // Cross,      // 十字
+        // Horizontal, // 一字 (X轴)
+        // Vertical    // 一字 (Y轴)
+    // };
+    explicit JoyStickItem(qreal size = 200, QGraphicsItem *parent = nullptr);
 
     QRectF boundingRect() const override;
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr);
+    void paint(QPainter *painter, 
+               const QStyleOptionGraphicsItem * /* option */, 
+               QWidget * /* widget */) override;
 
 signals:
-    void directionChanged(QPointF dir); // (-1 ~ 1, -1 ~ 1)
-    void released();
+    // void directionChanged(QPointF dir); // (-1 ~ 1, -1 ~ 1)
+    // void released();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -33,45 +43,13 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
-    JoyStickMode m_mode;       /* 摇杆类型 */
-    qreal m_radius;             /* 最大半径*/
-    qreal m_handleRadius;       /* 小球半径 */
-    QPointF m_offset;           /* 当前偏移 */
-};
+    qreal w;
+    QPointF knobPos;
+    bool isMove = false;
 
-// struct TypeInfo {
-    // QString name;
-    // int size;
-    // int rowSpan;
-// 
-    // bool operator==(const TypeInfo &other) const;
-    // bool operator!=(const TypeInfo &other) const;
-// };
-// 
-// class ComboItemDelegate : public QStyledItemDelegate
-// {
-    // Q_OBJECT
-// public:
-    // ComboItemDelegate(QObject *parent);
-// 
-    // ~ComboItemDelegate();
-// 
-    // /* item 被双击后进入编辑状态触发 */
-    // QWidget *createEditor(QWidget *parent,
-                        //   const QStyleOptionViewItem &option,
-                        //   const QModelIndex &index) const override;
-// 
-    // void setEditorData(QWidget *editor, const QModelIndex &index) const override;
-// 
-    // void setModelData(QWidget *editor,
-                    //   QAbstractItemModel *model,
-                    //   const QModelIndex &index) const override;
-// 
-    // void updateEditorGeometry(QWidget *editor,
-                            //   const QStyleOptionViewItem &option,
-                            //   const QModelIndex &index) const override;
-// protected:
-// 
-// };
+    Direction direction;
+
+    Direction calcDirection(qreal x, qreal y);
+};
 
 #endif // JOYSTICKITEM_H

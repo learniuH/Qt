@@ -28,15 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
     QGraphicsScene *scene = new QGraphicsScene(this);
     JoyStickItem *joyStick = new JoyStickItem();
     scene->addItem(joyStick);
-    joyStick->setPos(100, 100);
+    // joyStick->setPos(100, 100);
     
     ui->graphicsView->setScene(scene);
-    
-    connect(joyStick, &JoyStickItem::directionChanged, 
-        [](QPointF dir) {
-            qDebug() << "方向" << dir;
-        }
-    );
 }
 
 MainWindow::~MainWindow()
