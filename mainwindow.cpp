@@ -4,6 +4,7 @@
 #include "ProtoEditor/protomodel.h"
 
 #include "GraphicsItems/joystickitem.h"
+#include "GraphicsItems/switchItem.h"
 #include <QGraphicsScene>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -27,8 +28,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     QGraphicsScene *scene = new QGraphicsScene(this);
     JoyStickItem *joyStick = new JoyStickItem();
+    joyStick->setPos(QPointF(-200, 0));
+    ButtonItem * sw = new ButtonItem();
+    sw->setPos(QPointF(80, 0));
     scene->addItem(joyStick);
-    // joyStick->setPos(100, 100);
+    scene->addItem(sw);
     
     ui->graphicsView->setScene(scene);
 }

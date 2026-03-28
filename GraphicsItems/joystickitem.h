@@ -17,12 +17,6 @@ class JoyStickItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
-    // enum JoyStickMode {
-        // Free,       // 万向
-        // Cross,      // 十字
-        // Horizontal, // 一字 (X轴)
-        // Vertical    // 一字 (Y轴)
-    // };
     explicit JoyStickItem(qreal size = 200, QGraphicsItem *parent = nullptr);
 
     QRectF boundingRect() const override;
@@ -32,8 +26,6 @@ public:
                QWidget * /* widget */) override;
 
 signals:
-    // void directionChanged(QPointF dir); // (-1 ~ 1, -1 ~ 1)
-    // void released();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

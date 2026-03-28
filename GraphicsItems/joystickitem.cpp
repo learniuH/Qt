@@ -75,7 +75,7 @@ JoyStickItem::JoyStickItem(qreal size, QGraphicsItem *parent)
 
 QRectF JoyStickItem::boundingRect() const
 {
-    return QRectF(-w/2, -w/2, w, w);
+    return QRectF(-w/2 - w/12, -w/2 - w/12, w + w/6, w + w/6);
 }
 
 void JoyStickItem::paint(QPainter *painter, 
@@ -161,7 +161,7 @@ void JoyStickItem::paint(QPainter *painter,
 
 Direction JoyStickItem::calcDirection(qreal x, qreal y)
 {
-    qreal min_ = w/10;
+    qreal min_ = std::numeric_limits<double>::min();
     
     if (abs(x) > abs(y)) {
         if (x > min_) return Right;
