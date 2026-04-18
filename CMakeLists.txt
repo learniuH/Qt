@@ -6,23 +6,23 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+# 添加这一行，让 AUTOUIC 能够找到 serial/ 下的 .ui 文件
+list(APPEND CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/Serial")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-
-set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS SerialPort)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(QTest
         MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
+        main.cpp
+        mainwindow.cpp
+        mainwindow.h
+        mainwindow.ui
         ProtoEditor/protomodel.cpp
         ProtoEditor/protomodel.h
         ProtoEditor/protoview.cpp
@@ -33,6 +33,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         GraphicsItems/joystickitem.h
         GraphicsItems/switchItem.h
         GraphicsItems/switchItem.cpp
+        Serial/serialsettings.ui
+        Serial/serial.h
+        Serial/serial.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET QTest APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -53,6 +56,7 @@ else()
 endif()
 
 target_link_libraries(QTest PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(QTest PRIVATE Qt${QT_VERSION_MAJOR}::SerialPort)
 
 # widget promoted
 target_include_directories(QTest PRIVATE

@@ -1,4 +1,3 @@
-
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "ProtoEditor/protomodel.h"
@@ -6,6 +5,9 @@
 #include "GraphicsItems/joystickitem.h"
 #include "GraphicsItems/switchItem.h"
 #include <QGraphicsScene>
+
+#include <QSerialPort>
+#include <QSerialPortInfo>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -35,6 +37,35 @@ MainWindow::MainWindow(QWidget *parent)
     scene->addItem(sw);
     
     ui->graphicsView->setScene(scene);
+
+
+
+    /* Qt serial 操作 */
+    QSerialPort *m_serial = new QSerialPort(this);
+
+    /* 串口故障时，触发errorOccurred信号 */
+    connect(m_serial, &QSerialPort::errorOccurred, [m_serial](QSerialPort::SerialPortError error){
+        if (QSerialPort::ResourceError == error) {
+            qDebug() << "Critical Error" << m_serial->errorString();
+            m_serial->close();
+        }
+    });
+
+    /* 串口收到数据时，触发readyRead信号 */
+    connect(m_serial, &QSerialPort::readyRead, [m_serial](){
+        const QByteArray data = m_serial->readAll();
+    });
+
+    /* 查看可用的串口 */
+    const auto infos = QSerialPortInfo::availablePorts();
+    for (const QSerialPortInfo &info : infos) {
+        qDebug() << info.serialNumber();
+        qDebug() << info.portName();
+    }
+
+
+    // QSerialPort::Baud115200
+    // m_serial->setPortName();
 }
 
 MainWindow::~MainWindow()

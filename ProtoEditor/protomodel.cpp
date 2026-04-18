@@ -259,6 +259,7 @@ bool ProtoModel::setData(const QModelIndex &idx, const QVariant &value, int role
         break;
     }
     }
+
     /* ----------打印 ProtoField 内容---------- */
     for (const ProtoField &f : fields) {
         qDebug() << f;
@@ -331,12 +332,10 @@ void ProtoModel::setProtoSize(quint16 size)
                         QModelIndex idx = index(r, TYPE_COL);
                         emit dataChanged(idx, idx);
                     }
-                    else
-                    {
+                    else {
                         fields[r].continuation = false;
                         fields[r].ownerRow = fields[r].row;
                     }
-
                     if (fields[r].offset == size) {
                         row = r;
                         goto locateSize;
@@ -346,7 +345,7 @@ void ProtoModel::setProtoSize(quint16 size)
             row += f.type.rowSpan;
         }
         
-        locateSize:
+locateSize:
         removeRows(row, rowCount() - row);
     } 
     /* 变大 */

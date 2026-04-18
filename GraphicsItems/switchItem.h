@@ -6,7 +6,7 @@
 class ButtonItem : public QGraphicsObject
 {
 public:
-    explicit ButtonItem(qreal size = 150, QGraphicsItem *parent = nullptr);
+    explicit ButtonItem(qreal size = 100, QGraphicsItem *parent = nullptr);
 
     QRectF boundingRect() const override;
 
