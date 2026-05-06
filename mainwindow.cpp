@@ -6,6 +6,7 @@
 #include "GraphicsItems/switchItem.h"
 #include <QGraphicsScene>
 
+#include "Serial/serial.h"
 #include <QSerialPort>
 #include <QSerialPortInfo>
 
@@ -38,30 +39,36 @@ MainWindow::MainWindow(QWidget *parent)
     
     ui->graphicsView->setScene(scene);
 
+    // /* Qt serial 操作 */
+    // QSerialPort *m_serial = new QSerialPort(this);
+
+    // Serial *s = new Serial(m_serial, this);
+
+    // connect(ui->serialDialog, &QPushButton::clicked, [this, s](){
+    //     s->updateAvailablePorts();
+    //     s->show();
+    // });
 
 
-    /* Qt serial 操作 */
-    QSerialPort *m_serial = new QSerialPort(this);
+    // /* 串口故障时，触发errorOccurred信号 */
+    // connect(m_serial, &QSerialPort::errorOccurred, [m_serial](QSerialPort::SerialPortError error){
+    //     if (QSerialPort::ResourceError == error) {
+    //         qDebug() << "Critical Error" << m_serial->errorString();
+    //         m_serial->close();
+    //     }
+    // });
 
-    /* 串口故障时，触发errorOccurred信号 */
-    connect(m_serial, &QSerialPort::errorOccurred, [m_serial](QSerialPort::SerialPortError error){
-        if (QSerialPort::ResourceError == error) {
-            qDebug() << "Critical Error" << m_serial->errorString();
-            m_serial->close();
-        }
-    });
+    // /* 串口收到数据时，触发readyRead信号 */
+    // connect(m_serial, &QSerialPort::readyRead, [m_serial](){
+    //     const QByteArray data = m_serial->readAll();
+    // });
 
-    /* 串口收到数据时，触发readyRead信号 */
-    connect(m_serial, &QSerialPort::readyRead, [m_serial](){
-        const QByteArray data = m_serial->readAll();
-    });
-
-    /* 查看可用的串口 */
-    const auto infos = QSerialPortInfo::availablePorts();
-    for (const QSerialPortInfo &info : infos) {
-        qDebug() << info.serialNumber();
-        qDebug() << info.portName();
-    }
+    // /* 查看可用的串口 */
+    // const auto infos = QSerialPortInfo::availablePorts();
+    // for (const QSerialPortInfo &info : infos) {
+    //     qDebug() << info.serialNumber();
+    //     qDebug() << info.portName();
+    // }
 
 
     // QSerialPort::Baud115200
